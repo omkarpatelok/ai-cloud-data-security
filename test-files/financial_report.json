@@ -1,0 +1,32 @@
+{
+  "report_type": "quarterly_financial",
+  "period": "Q4-2025",
+  "company": "TechCorp India Pvt Ltd",
+  "confidential": true,
+  "employees": [
+    {
+      "name": "Arjun Mehta",
+      "employee_id": "EMP-001",
+      "pan": "BCDEF2345G",
+      "aadhaar": "9876 5432 1098",
+      "salary": 1500000,
+      "bank_account_number": "11223344556677",
+      "ifsc": "HDFC0001234",
+      "credit_card": "4916 7890 1234 5678"
+    },
+    {
+      "name": "Kavita Nair",
+      "employee_id": "EMP-002",
+      "pan": "GHIJK6789L",
+      "aadhaar": "8765 4321 0987",
+      "salary": 1800000,
+      "bank_account_number": "22334455667788",
+      "ifsc": "ICIC0002345",
+      "credit_card": "5412 3456 7890 1234"
+    }
+  ],
+  "total_revenue": 50000000,
+  "net_profit": 12000000,
+  "tax_liability": 3600000,
+  "ssn_reference": "For US operations - SSN: 987-65-4321"
+}

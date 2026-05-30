@@ -1,0 +1,4 @@
+Name,CreditCard,CVV,Expiry,SSN,Notes
+John Doe,4532 1234 5678 9010,123,12/28,123-456-7890,AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Jane Smith,4111 2222 3333 4444,456,11/29,987-654-3210,Password: SuperSecretP@ssw0rd!
+Confidential, Do Not Distribute

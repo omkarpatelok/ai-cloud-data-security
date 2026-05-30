@@ -1,0 +1,62 @@
+# ========================
+# OS-generated files
+# ========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.eggs/
+
+# ========================
+# Java / Maven
+# ========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+.m2/
+.m2repo/
+*.log
+
+# ========================
+# IDE / Editors
+# ========================
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+
+# ========================
+# Environment / Secrets
+# ========================
+.env
+*.env.local
+
+# ========================
+# Archives
+# ========================
+*.zip
+*.tar.gz
+*.rar
+
+# ========================
+# Node (if ever added)
+# ========================
+node_modules/
+dist/
+.cache/

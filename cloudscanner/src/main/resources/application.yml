@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:cloudscanner
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+aws:
+  region: ap-south-1
+  s3:
+    bucket: cloudscanner-test-bucket-harshal-001
+    sensitive-bucket: cloudscanner-sensitive-bucket-harshal-001
+    max-file-size: 10485760   # 10 MB (align with app.upload and frontend)
+
+ai:
+  nlp:
+    url: http://localhost:9000/detect
+  classifier:
+    url: http://localhost:9100/classify
+  resilience:
+    max-retries: 2
+    failure-threshold: 3
+    cooldown-seconds: 30
+
+security:
+  s3-event-token:
+
+# Max size for browser uploads via pre-signed URL (must match frontend validation)
+app:
+  upload:
+    max-file-size-bytes: 10485760

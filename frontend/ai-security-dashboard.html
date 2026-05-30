@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Data Classification — AI-powered cloud data security dashboard for risk analysis, scan history, and compliance monitoring.">
+<title>Data Classification — AI Cloud Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Loading spinner (small inline) */
+  .spinner-sm {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+
+  /* Pulse loader for tables / containers */
+  .loader-pulse {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border: 3px solid var(--border-bright);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Disabled buttons */
+  button:disabled,
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<header class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <!-- Logo -->
+    <a class="navbar-brand" href="#" id="navbar-brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <rect x="1" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="12" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="1" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="12" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+        </svg>
+      </div>
+      <span class="brand-text">Data Classification</span>
+    </a>
+
+    <!-- Desktop Nav Links (hidden on login) -->
+    <nav class="navbar-links" id="navbar-links">
+      <a class="nav-link active" data-page="dashboard" onclick="navigate('dashboard')" id="nav-dashboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Overview
+      </a>
+      <a class="nav-link" data-page="scans" onclick="navigate('scans')" id="nav-scans">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h9M2 12h6"/><circle cx="13" cy="11" r="2.5"/></svg>
+        Scan History
+        <span class="link-badge">12</span>
+      </a>
+      <a class="nav-link" data-page="manual" onclick="navigate('manual')" id="nav-manual">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        Manual Scan
+      </a>
+      <a class="nav-link" data-page="upload" onclick="navigate('upload')" id="nav-upload">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 14h10"/></svg>
+        Upload Data
+      </a>
+      <a class="nav-link" data-page="admin" onclick="navigate('admin')" id="nav-admin" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z"/></svg>
+        Admin
+      </a>
+    </nav>
+
+    <!-- Right section -->
+    <div class="navbar-right" id="navbar-right">
+      <div class="navbar-clock" id="clock">--:--:--</div>
+      <div class="navbar-status" id="navbar-status">
+        <span class="status-indicator"></span>
+        <span>Online</span>
+      </div>
+      <div class="navbar-user" id="navbar-user" style="display:none">
+        <div class="user-avatar-sm" id="user-avatar">AD</div>
+        <span class="user-name-sm" id="user-display-name">Admin</span>
+        <button class="btn-icon" onclick="logout()" title="Logout" id="logout-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H3v12h3M11 5l3 3-3 3M7 8h7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile drawer overlay -->
+<div class="mobile-overlay" id="mobile-overlay"></div>
+<div class="mobile-drawer" id="mobile-drawer">
+  <div class="drawer-header">
+    <div class="brand-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="1" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
+    </div>
+    <span class="brand-text">Data Classification</span>
+    <button class="drawer-close" id="drawer-close" aria-label="Close menu">✕</button>
+  </div>
+  <nav class="drawer-nav" id="drawer-nav">
+    <a class="drawer-link active" data-page="dashboard" onclick="navigate('dashboard');closeDrawer()">Overview</a>
+    <a class="drawer-link" data-page="scans" onclick="navigate('scans');closeDrawer()">Scan History</a>
+    <a class="drawer-link" data-page="manual" onclick="navigate('manual');closeDrawer()">Manual Scan</a>
+    <a class="drawer-link" data-page="upload" onclick="navigate('upload');closeDrawer()">Upload Data</a>
+    <a class="drawer-link" data-page="admin" onclick="navigate('admin');closeDrawer()" id="drawer-admin" style="display:none">Admin Panel</a>
+  </nav>
+  <div class="drawer-footer" id="drawer-footer" style="display:none">
+    <div class="user-avatar-sm" id="drawer-avatar">AD</div>
+    <div>
+      <div class="user-name-sm" id="drawer-user-name">Admin</div>
+      <div class="user-role-sm" id="drawer-user-role">ADMINISTRATOR</div>
+    </div>
+    <button class="btn-icon" onclick="logout()" title="Logout"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H3v12h3M11 5l3 3-3 3M7 8h7"/></svg></button>
+  </div>
+</div>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="main-content" id="main-content">
+
+  <!-- ===== LOGIN ===== -->
+  <div class="page active" id="page-login">
+    <div class="login-scene">
+      <!-- Animated orbs background -->
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="login-wrap">
+        <div class="login-header">
+          <div class="login-logo-mark">
+            <svg width="36" height="36" viewBox="0 0 22 22" fill="none"><rect x="1" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="1" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="12" y="12" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
+          </div>
+          <h1 class="login-title">Data Classification</h1>
+          <p class="login-subtitle">AI Cloud Security Operations</p>
+        </div>
+        <div class="login-card">
+          <div class="field-group">
+            <label class="field-label" for="login-user">Username</label>
+            <input class="field-input" id="login-user" type="text" placeholder="Enter username" autocomplete="off">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="login-pass">Password</label>
+            <input class="field-input" id="login-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+          </div>
+          <div class="login-hint">
+            Enter your credentials to authenticate with the backend API.
+          </div>
+          <button class="btn-login" onclick="doLogin()" id="login-submit-btn">
+            <span>Authenticate</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </button>
+          <div class="login-error" id="login-error">Invalid credentials. Access denied.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page" id="page-dashboard">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Security Overview</h2>
+          <p class="section-sub">Real-time threat intelligence</p>
+        </div>
+        <div class="header-actions">
+          <div class="threat-badge elevated">
+            <span class="threat-dot"></span>
+            THREAT: ELEVATED
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card" data-accent="cyan">
+          <div class="kpi-icon-wrap cyan">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 2"/></svg>
+          </div>
+          <div class="kpi-label">Total Scans</div>
+          <div class="kpi-value" data-color="cyan">150</div>
+          <div class="kpi-meta">Last 30 days</div>
+          <div class="kpi-trend up-good">↑ 12%</div>
+        </div>
+        <div class="kpi-card" data-accent="red">
+          <div class="kpi-icon-wrap red">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2l8 14H2z"/><path d="M10 8v3M10 13.5v.5"/></svg>
+          </div>
+          <div class="kpi-label">Critical / High Risk</div>
+          <div class="kpi-value" data-color="red">12</div>
+          <div class="kpi-meta">Requires immediate action</div>
+          <div class="kpi-trend up-bad">↑ 3</div>
+        </div>
+        <div class="kpi-card" data-accent="amber">
+          <div class="kpi-icon-wrap amber">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M7 10h6M10 7v6"/></svg>
+          </div>
+          <div class="kpi-label">Medium Risk</div>
+          <div class="kpi-value" data-color="amber">34</div>
+          <div class="kpi-meta">Under monitoring</div>
+          <div class="kpi-trend up-bad">↑ 5</div>
+        </div>
+        <div class="kpi-card" data-accent="green">
+          <div class="kpi-icon-wrap green">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="8"/><path d="M7 10l2 2 4-4"/></svg>
+          </div>
+          <div class="kpi-label">Low Risk / Safe</div>
+          <div class="kpi-value" data-color="green">104</div>
+          <div class="kpi-meta">Cleared files</div>
+          <div class="kpi-trend up-good">↑ 8%</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="dash-grid">
+        <!-- Donut -->
+        <div class="panel glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Risk Distribution</h3>
+            <button class="panel-action" onclick="navigate('scans')">View all →</button>
+          </div>
+          <div class="panel-body">
+            <div class="donut-wrap">
+              <div class="donut-chart"></div>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--critical)"></div><span class="legend-name">Critical</span><span class="legend-val">12</span><span class="legend-pct">(8%)</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div><span class="legend-name">High</span><span class="legend-val">20</span><span class="legend-pct">(13%)</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--medium)"></div><span class="legend-name">Medium</span><span class="legend-val">34</span><span class="legend-pct">(23%)</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--low)"></div><span class="legend-name">Low</span><span class="legend-val">84</span><span class="legend-pct">(56%)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk by data type -->
+        <div class="panel glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Risk Score by Data Type</h3>
+            <span class="panel-action">This month</span>
+          </div>
+          <div class="panel-body">
+            <div class="bar-chart" id="bar-chart">
+              <div class="bar-row"><div class="bar-label">PII</div><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--critical)"></div></div><div class="bar-val text-red">88</div></div>
+              <div class="bar-row"><div class="bar-label">Credentials</div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--high)"></div></div><div class="bar-val text-amber">72</div></div>
+              <div class="bar-row"><div class="bar-label">Financial</div><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--high)"></div></div><div class="bar-val text-amber">65</div></div>
+              <div class="bar-row"><div class="bar-label">Medical</div><div class="bar-track"><div class="bar-fill" style="width:54%;background:var(--medium)"></div></div><div class="bar-val">54</div></div>
+              <div class="bar-row"><div class="bar-label">Config</div><div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--medium)"></div></div><div class="bar-val">40</div></div>
+              <div class="bar-row"><div class="bar-label">Public</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--low)"></div></div><div class="bar-val text-green">18</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent High-Risk Alerts -->
+      <div class="panel glass-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Recent Red Flags — High &amp; Critical Risk</h3>
+          <button class="panel-action" onclick="navigate('scans')">View all scans →</button>
+        </div>
+        <div class="panel-body table-responsive">
+          <table class="alert-table">
+            <thead><tr><th>Resource</th><th>Data Type</th><th>Risk Level</th><th>Score</th><th>Policy</th><th>Time</th></tr></thead>
+            <tbody id="dash-alert-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCAN HISTORY ===== -->
+  <div class="page" id="page-scans">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Scan History Explorer</h2>
+          <p class="section-sub">All scan results</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input class="search-box" id="scan-search" type="text" placeholder="Search resource name..." oninput="filterScans()">
+        <select class="filter-select" id="scan-filter-risk" onchange="filterScans()">
+          <option value="">All Risk Levels</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <select class="filter-select" id="scan-filter-type" onchange="filterScans()">
+          <option value="">All Data Types</option>
+          <option value="PII">PII</option>
+          <option value="CREDENTIALS">Credentials</option>
+          <option value="FINANCIAL">Financial</option>
+          <option value="MEDICAL">Medical</option>
+        </select>
+        <button class="btn btn-primary" onclick="navigate('manual')">+ Trigger Scan</button>
+      </div>
+
+      <div class="panel glass-panel">
+        <div class="panel-body table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th onclick="sortScans('id')">#</th>
+                <th onclick="sortScans('resourceName')">Resource</th>
+                <th onclick="sortScans('dataType')">Data Type</th>
+                <th onclick="sortScans('riskLevel')">Risk Level</th>
+                <th onclick="sortScans('riskScore')">Score</th>
+                <th onclick="sortScans('policyAction')">Action</th>
+                <th>Public</th>
+                <th onclick="sortScans('createdAt')">Scanned At</th>
+              </tr>
+            </thead>
+            <tbody id="scan-table-body"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <div id="scan-count-label" class="text-muted"></div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MANUAL SCAN ===== -->
+  <div class="page" id="page-manual">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Manual Scan</h2>
+          <p class="section-sub">Trigger on-demand analysis</p>
+        </div>
+      </div>
+
+      <div class="scan-layout">
+        <!-- Single scan form -->
+        <div class="panel glass-panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Single Object Scan</h3>
+              <p class="panel-sub">POST /api/scans — Analyze a specific S3 object</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="form-row">
+              <label class="form-label" for="scan-resource">Resource Name</label>
+              <input class="form-input" id="scan-resource" type="text" placeholder="e.g. customer_data.csv">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="scan-type">Resource Type</label>
+              <select class="form-select" id="scan-type">
+                <option value="S3_OBJECT">S3_OBJECT</option>
+                <option value="S3_BUCKET">S3_BUCKET</option>
+                <option value="S3_PREFIX">S3_PREFIX</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Scan Depth</label>
+              <select class="form-select">
+                <option>FULL (Regex + NLP + AI)</option>
+                <option>STANDARD (Regex + NLP)</option>
+                <option>QUICK (Regex only)</option>
+              </select>
+            </div>
+
+            <div class="form-actions" style="margin-top:24px">
+              <button type="button" class="btn btn-primary" id="run-scan-btn" onclick="triggerScan()">▶ Run Scan</button>
+              <button type="button" class="btn btn-ghost" onclick="document.getElementById('scan-resource').value=''">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch scan -->
+        <div class="panel glass-panel">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Batch Scan</h3>
+              <p class="panel-sub">POST /api/scans/batch — Scan entire S3 bucket context</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="warning-box">
+              <div class="warning-title">⚠ Warning</div>
+              <div class="warning-text">Batch scan will analyze ALL objects in the configured S3 bucket. This may take several minutes depending on bucket size.</div>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Target Bucket</label>
+              <input class="form-input readonly" type="text" value="production-data-lake" readonly>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Estimated Objects</label>
+              <input class="form-input readonly" type="text" value="~2,400 objects" readonly>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-danger" id="batch-scan-btn" onclick="triggerBatch()">⚡ Run Batch Scan</button>
+            </div>
+
+            <!-- Recent scan results -->
+            <div class="divider-glow"></div>
+            <div class="mini-label">Recent Triggered Scans</div>
+            <div id="recent-scans">
+              <div class="text-muted" style="text-align:center;padding:16px;font-size:12px" id="recent-scans-empty">Run a scan or upload a file to see results here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== UPLOAD ===== -->
+  <div class="page" id="page-upload">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Upload Data</h2>
+          <p class="section-sub">Securely upload and analyze files</p>
+        </div>
+      </div>
+
+      <div class="panel glass-panel">
+        <div class="panel-header">
+          <div>
+            <h3 class="panel-title">Upload &amp; Scan</h3>
+            <p class="panel-sub">Upload file to S3 and trigger immediate security analysis</p>
+          </div>
+        </div>
+        <div class="panel-body">
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-upload').click()" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault(); this.classList.remove('dragover'); handleFileSelect(event)">
+              <div class="upload-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+              </div>
+              <h4 class="upload-zone-title">Click to upload or drag and drop</h4>
+              <p class="upload-zone-desc">Drag your files here or click to browse (Max 10MB)</p>
+              <input type="file" id="file-upload" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+
+            <div id="selected-file-display" class="selected-file-card" style="display: none;">
+               <div class="file-info-col">
+                 <div class="file-icon-wrap">
+                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                 </div>
+                 <div class="file-name-meta">
+                   <div id="selected-file-name" class="file-name-txt">filename.pdf</div>
+                   <div id="selected-file-size" class="file-size-txt">2.4 MB</div>
+                 </div>
+               </div>
+               <button class="btn-icon btn-cancel" onclick="clearSelectedFile()" title="Remove file">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+               </button>
+            </div>
+            <div class="form-row" id="upload-progress-row" style="display:none">
+              <div class="upload-progress-track">
+                <div class="upload-progress-fill" id="upload-progress-fill" style="width:0%"></div>
+              </div>
+              <div class="upload-progress-label" id="upload-progress-label">Uploading… 0%</div>
+            </div>
+            <div class="form-actions" style="margin-top:24px">
+              <button type="button" class="btn btn-primary" id="upload-scan-btn" onclick="uploadAndScan()">Upload &amp; Scan</button>
+            </div>
+            <div class="upload-inline-error" id="upload-error" style="margin-top:12px;color:var(--accent-red)"></div>
+
+            <div class="divider-glow" style="margin:24px 0"></div>
+            <div class="mini-label">Recent Uploads</div>
+            <div id="recent-uploads">
+              <div class="text-muted" style="text-align:center;padding:16px;font-size:12px" id="recent-uploads-empty">Upload a file to see results here.</div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN ===== -->
+  <div class="page" id="page-admin">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Admin Panel</h2>
+          <p class="section-sub">System audit &amp; metadata</p>
+        </div>
+      </div>
+
+      <div class="stats-strip">
+        <div class="stat-mini glass-panel"><div class="stat-mini-val">48</div><div class="stat-mini-label">Remediation Actions</div></div>
+        <div class="stat-mini glass-panel"><div class="stat-mini-val">12</div><div class="stat-mini-label">Files Quarantined</div></div>
+        <div class="stat-mini glass-panel"><div class="stat-mini-val">3</div><div class="stat-mini-label">Policy Violations</div></div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="adminTab('audit', this)">Audit Logs</button>
+        <button class="admin-tab" onclick="adminTab('meta', this)">S3 Metadata</button>
+      </div>
+
+      <!-- Audit Logs -->
+      <div class="admin-content active" id="admin-audit">
+        <div class="panel glass-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Remediation Audit Trail</h3>
+            <button class="panel-action">Export CSV</button>
+          </div>
+          <div class="panel-body scrollable">
+            <div id="audit-log-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- S3 Metadata -->
+      <div class="admin-content" id="admin-meta">
+        <div class="panel glass-panel">
+          <div class="panel-body table-responsive">
+            <table class="data-table">
+              <thead><tr><th>Object Key</th><th>Size</th><th>Content Type</th><th>Last Modified</th><th>Public</th><th>Encrypted</th></tr></thead>
+              <tbody id="metadata-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title">Scan Complete</div>
+  <div class="toast-msg" id="toast-msg">—</div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
